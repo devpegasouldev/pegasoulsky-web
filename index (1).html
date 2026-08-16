@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PegaSoulSky — Minecraft Szerver | play.pegasoulsky.hu</title>
+<meta name="description" content="PegaSoulSky — ahol az ég és a lélek eggyé válik. OneBlock, szezonális versenyek és egy tisztességes, non-P2W közösség egy varázslatos Minecraft szerveren." />
+
+<!-- Tailwind CSS (CDN, config extended for the PegaSoulSky palette) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          void: '#080B22',        // deepest background
+          nightsky: '#0E1338',    // secondary background
+          dusk: '#161B4A',        // card background
+          soul: '#8B6CFF',        // cosmic purple (soul)
+          soulbright: '#B79CFF',
+          feather: '#48D9E8',     // glowing cyan (sky/feather)
+          gold: '#FFC773',        // pegasus gold
+          mist: '#C6C9EE',        // muted lavender text
+          starlight: '#F3F1FF',   // near-white text
+        },
+        fontFamily: {
+          display: ['Cinzel', 'serif'],
+          body: ['"Manrope"', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+        boxShadow: {
+          glow: '0 0 40px -8px rgba(139,108,255,0.55)',
+          glowCyan: '0 0 40px -8px rgba(72,217,232,0.55)',
+          glowGold: '0 0 40px -8px rgba(255,199,115,0.45)',
+        },
+      },
+    },
+  };
+</script>
+
+<!-- Fonts: Cinzel (mythic display), Manrope (clean body), JetBrains Mono (data/IP) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     BASE / CUSTOM STYLES — everything Tailwind's utility classes
+     can't express cleanly (glass, glow, feather dividers, motion)
+     ============================================================ */
+
+  :root{
+    --void:#080B22;
+    --nightsky:#0E1338;
+    --dusk:#161B4A;
+    --soul:#8B6CFF;
+    --feather:#48D9E8;
+    --gold:#FFC773;
+  }
+
+  *{ scroll-behavior:smooth; }
+
+  html,body{
+    background:var(--void);
+    color:#E9E9FB;
+    font-family:'Manrope', sans-serif;
+    overflow-x:hidden;
+  }
+
+  h1,h2,h3, .font-display{
+    font-family:'Cinzel', serif;
+    letter-spacing:0.01em;
+  }
+
+  /* Per-letter branded wordmark: "PegaSoulSky" — each letter carries
+     its own exact color from the light-purple -> cyan sequence. */
+  .logo-letters span{
+    font-weight:800;
+  }
+
+  /* ---------- Starfield + aurora ambient background ---------- */
+  #starfield{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+  .aurora{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 70% 45% at 18% -5%, rgba(139,108,255,0.30), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 8%, rgba(72,217,232,0.20), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 50% 100%, rgba(255,199,115,0.08), transparent 60%);
+  }
+
+  /* ---------- Glassmorphism ---------- */
+  .glass{
+    background:rgba(22,27,74,0.45);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(139,108,255,0.18);
+  }
+  .glass-strong{
+    background:rgba(14,19,56,0.75);
+    backdrop-filter:blur(22px);
+    -webkit-backdrop-filter:blur(22px);
+    border:1px solid rgba(139,108,255,0.22);
+  }
+
+  /* ---------- Gradient text ---------- */
+  .text-gradient{
+    background:linear-gradient(100deg, var(--feather) 0%, var(--soul) 45%, var(--gold) 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  /* ---------- Signature: feather-edge section divider ----------
+     A wing/feather-inspired torn silhouette between sections,
+     rendered as a repeating SVG-based clip-path shape. This is the
+     page's one recurring motif tying every section back to
+     "Pegasus wings drifting between sky and soul." */
+  .feather-divider{
+    position:relative;
+    height:64px;
+    width:100%;
+    background:
+      linear-gradient(180deg, transparent, rgba(139,108,255,0.05));
+  }
+  .feather-divider svg{ display:block; width:100%; height:100%; }
+
+  /* ---------- Glow ring on hover ---------- */
+  .glow-ring{ position:relative; }
+  .glow-ring::before{
+    content:'';
+    position:absolute; inset:-1px;
+    border-radius:inherit;
+    padding:1px;
+    background:linear-gradient(135deg, var(--feather), var(--soul), var(--gold));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;
+    mask-composite:exclude;
+    opacity:0;
+    transition:opacity .4s ease;
+  }
+  .glow-ring:hover::before{ opacity:1; }
+
+  /* ---------- Floating soul particles in hero ---------- */
+  .particle{
+    position:absolute;
+    border-radius:9999px;
+    background:radial-gradient(circle, rgba(139,108,255,0.9), rgba(139,108,255,0));
+    filter:blur(1px);
+    animation:drift linear infinite;
+    opacity:0.7;
+  }
+  @keyframes drift{
+    0%{ transform:translateY(0) translateX(0); }
+    50%{ transform:translateY(-40px) translateX(15px); }
+    100%{ transform:translateY(0) translateX(0); }
+  }
+
+  /* ---------- Wing-beat pulse for the status dot ---------- */
+  .status-dot{
+    width:10px; height:10px; border-radius:9999px;
+    background:#3EDC7A;
+    box-shadow:0 0 0 0 rgba(62,220,122,0.7);
+    animation:pulse 2s infinite;
+  }
+  .status-dot.offline{
+    background:#F2607A;
+    box-shadow:0 0 0 0 rgba(242,96,122,0.7);
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(62,220,122,0.55); }
+    70%{ box-shadow:0 0 0 10px rgba(62,220,122,0); }
+    100%{ box-shadow:0 0 0 0 rgba(62,220,122,0); }
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1);
+  }
+  .reveal.in-view{ opacity:1; transform:translateY(0); }
+
+  /* ---------- Nav link underline ---------- */
+  .nav-link{ position:relative; }
+  .nav-link::after{
+    content:'';
+    position:absolute; left:0; bottom:-4px;
+    width:0%; height:2px;
+    background:linear-gradient(90deg, var(--feather), var(--soul));
+    transition:width .3s ease;
+  }
+  .nav-link:hover::after, .nav-link.active::after{ width:100%; }
+
+  /* ---------- Rank card feather-tip accent ---------- */
+  .rank-card{ position:relative; overflow:hidden; }
+  .rank-card::after{
+    content:'';
+    position:absolute; top:-60%; right:-30%;
+    width:220px; height:220px;
+    background:radial-gradient(circle, var(--accent-glow,rgba(139,108,255,0.35)), transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ---------- Custom scrollbar ---------- */
+  ::-webkit-scrollbar{ width:10px; }
+  ::-webkit-scrollbar-track{ background:var(--void); }
+  ::-webkit-scrollbar-thumb{ background:linear-gradient(var(--soul), var(--feather)); border-radius:9999px; }
+
+  /* ---------- Copy button feedback ---------- */
+  .copied-badge{
+    opacity:0; transform:translateY(4px) scale(.95);
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .copied-badge.show{ opacity:1; transform:translateY(0) scale(1); }
+
+  /* ---------- Accordion (Rules) ---------- */
+  .rule-panel{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .45s cubic-bezier(.2,.7,.2,1);
+  }
+  .rule-item.open .rule-panel{ max-height:600px; }
+  .rule-item .chev{ transition:transform .35s ease; }
+  .rule-item.open .chev{ transform:rotate(180deg); }
+
+  /* Respect reduced-motion preference */
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+  }
+
+  /* Visible keyboard focus */
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--feather);
+    outline-offset:3px;
+    border-radius:6px;
+  }
+</style>
+</head>
+
+<body class="font-body antialiased">
+
+<!-- Ambient background layers -->
+<canvas id="starfield"></canvas>
+<div class="aurora"></div>
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+<header id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-500">
+  <nav class="glass-strong mx-3 mt-3 rounded-2xl px-5 py-3 flex items-center justify-between md:mx-6 lg:mx-10">
+    <a href="#kezdolap" class="flex items-center gap-2.5 group">
+      <span class="font-display text-lg md:text-xl tracking-wide logo-letters">
+        <span style="color:#C8B6FF">P</span><span style="color:#B9B1FE">e</span><span style="color:#ABADFC">g</span><span style="color:#A6B4FB">a</span><span style="color:#A1BBF9">S</span><span style="color:#9DC4F7">o</span><span style="color:#98CDF4">u</span><span style="color:#94D6F2">l</span><span style="color:#90E0EF">S</span><span style="color:#90E0EF">k</span><span style="color:#90E0EF">y</span>
+      </span>
+    </a>
+
+    <!-- Desktop links -->
+    <ul class="hidden md:flex items-center gap-8 text-sm font-medium text-mist">
+      <li><a href="#kezdolap" class="nav-link active hover:text-starlight transition-colors">Kezdőlap</a></li>
+      <li><a href="#jatekmodok" class="nav-link hover:text-starlight transition-colors">Játékmódok</a></li>
+      <li><a href="#szezon" class="nav-link hover:text-starlight transition-colors">Szezon</a></li>
+      <li><a href="#webshop" class="nav-link hover:text-starlight transition-colors">Webshop</a></li>
+      <li><a href="#szabalyzat" class="nav-link hover:text-starlight transition-colors">Szabályzat</a></li>
+      <li><a href="#kozosseg" class="nav-link hover:text-starlight transition-colors">Discord</a></li>
+    </ul>
+
+    <a href="#kezdolap" class="hidden md:inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-soul to-feather px-5 py-2 text-sm font-semibold text-void shadow-glow hover:brightness-110 transition">
+      Csatlakozás
+    </a>
+
+    <!-- Mobile menu toggle -->
+    <button id="menuBtn" aria-label="Menü megnyitása" aria-expanded="false" class="md:hidden text-starlight p-2">
+      <svg id="iconMenu" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+      <svg id="iconClose" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </nav>
+
+  <!-- Mobile dropdown -->
+  <div id="mobileMenu" class="hidden md:hidden glass-strong mx-3 mt-2 rounded-2xl px-6 py-5 flex flex-col gap-4 text-mist font-medium">
+    <a href="#kezdolap" class="mobile-link hover:text-starlight transition-colors">Kezdőlap</a>
+    <a href="#jatekmodok" class="mobile-link hover:text-starlight transition-colors">Játékmódok</a>
+    <a href="#szezon" class="mobile-link hover:text-starlight transition-colors">Szezon</a>
+    <a href="#webshop" class="mobile-link hover:text-starlight transition-colors">Webshop</a>
+    <a href="#szabalyzat" class="mobile-link hover:text-starlight transition-colors">Szabályzat</a>
+    <a href="#kozosseg" class="mobile-link hover:text-starlight transition-colors">Discord</a>
+  </div>
+</header>
+
+<!-- =========================================================
+     HERO — Kezdőlap
+========================================================= -->
+<section id="kezdolap" class="relative z-10 min-h-screen flex items-center justify-center px-5 pt-32 pb-20 overflow-hidden">
+
+  <!-- floating soul particles -->
+  <div class="particle w-3 h-3" style="left:10%; top:25%; animation-duration:9s;"></div>
+  <div class="particle w-2 h-2" style="left:22%; top:65%; animation-duration:7s; animation-delay:1s;"></div>
+  <div class="particle w-4 h-4" style="left:78%; top:20%; animation-duration:11s; animation-delay:.5s;"></div>
+  <div class="particle w-2 h-2" style="left:85%; top:70%; animation-duration:8s; animation-delay:2s;"></div>
+  <div class="particle w-3 h-3" style="left:50%; top:15%; animation-duration:10s; animation-delay:1.5s;"></div>
+
+  <div class="max-w-4xl w-full text-center relative">
+    <p class="reveal font-mono text-xs md:text-sm tracking-[0.35em] uppercase text-feather mb-6">
+      ✦ Minecraft Java Edition · 1.21.8+ ✦
+    </p>
+
+    <h1 class="reveal font-display text-5xl sm:text-6xl md:text-8xl leading-[1.05] logo-letters drop-shadow-[0_0_30px_rgba(139,108,255,0.35)]">
+      <span style="color:#C8B6FF">P</span><span style="color:#B9B1FE">e</span><span style="color:#ABADFC">g</span><span style="color:#A6B4FB">a</span><span style="color:#A1BBF9">S</span><span style="color:#9DC4F7">o</span><span style="color:#98CDF4">u</span><span style="color:#94D6F2">l</span><span style="color:#90E0EF">S</span><span style="color:#90E0EF">k</span><span style="color:#90E0EF">y</span>
+    </h1>
+
+    <p class="reveal mt-6 text-base md:text-xl text-mist max-w-2xl mx-auto leading-relaxed">
+      Ahol az ég végtelensége és a lélek szabadsága eggyé válik.
+      Vágj bele egy OneBlock kalandba, egy tisztességes, <span class="text-starlight font-semibold">non-P2W</span> közösségben.
+    </p>
+
+    <!-- IP copy + status -->
+    <div class="reveal mt-10 flex flex-col items-center gap-4">
+      <div class="glass rounded-2xl px-6 py-4 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 shadow-glow">
+        <div class="flex items-center gap-3">
+          <span class="text-mist text-sm">Szerver IP:</span>
+          <code id="serverIp" class="font-mono text-lg md:text-xl text-starlight tracking-wide">play.pegasoulsky.hu</code>
+        </div>
+        <div class="relative">
+          <button id="copyBtn" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-soul to-feather px-4 py-2 text-sm font-semibold text-void hover:brightness-110 active:scale-95 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Másolás
+          </button>
+          <span id="copiedBadge" class="copied-badge absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-feather text-void text-xs font-semibold px-3 py-1">
+            Másolva! ✓
+          </span>
+        </div>
+      </div>
+
+      <!-- Live status -->
+      <div id="statusBox" class="glass rounded-full px-5 py-2.5 flex items-center gap-3 text-sm text-mist">
+        <span id="statusDot" class="status-dot"></span>
+        <span id="statusText">Szerver állapotának lekérése…</span>
+      </div>
+    </div>
+
+    <div class="reveal mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a href="#webshop" class="w-full sm:w-auto text-center rounded-full bg-gradient-to-r from-soul via-feather to-gold px-8 py-3.5 font-display font-semibold text-void shadow-glow hover:scale-105 transition-transform">
+        Rangok megtekintése
+      </a>
+      <a href="#kozosseg" class="w-full sm:w-auto text-center rounded-full glass px-8 py-3.5 font-display font-semibold text-starlight hover:border-feather/60 transition">
+        Csatlakozz a Discordhoz
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="feather-divider" aria-hidden="true">
+  <svg viewBox="0 0 1440 64" preserveAspectRatio="none">
+    <path d="M0,32 C120,60 240,4 360,32 C480,60 600,4 720,32 C840,60 960,4 1080,32 C1200,60 1320,4 1440,32 L1440,64 L0,64 Z" fill="#0E1338"/>
+  </svg>
+</div>
+
+<!-- =========================================================
+     JÁTÉKMÓDOK
+========================================================= -->
+<section id="jatekmodok" class="relative z-10 bg-nightsky px-5 py-24 md:py-32">
+  <div class="max-w-6xl mx-auto">
+    <div class="reveal text-center mb-16">
+      <p class="font-mono text-xs tracking-[0.35em] uppercase text-feather mb-3">Jelenlegi játékmód</p>
+      <h2 class="font-display text-3xl md:text-5xl font-bold text-starlight">Játékmódok</h2>
+      <p class="mt-4 text-mist max-w-xl mx-auto">Egyetlen blokkból egy egész birodalom — ez a PegaSoulSky szíve.</p>
+    </div>
+
+    <!-- Featured: OneBlock -->
+    <div class="reveal glow-ring glass-strong rounded-3xl p-8 md:p-12 grid md:grid-cols-[auto_1fr] gap-8 items-center shadow-glow">
+      <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-soul to-feather flex items-center justify-center text-4xl mx-auto md:mx-0">🧊</div>
+      <div>
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+          <h3 class="font-display text-2xl md:text-3xl font-bold text-starlight">OneBlock</h3>
+          <span class="rounded-full bg-feather/15 text-feather text-xs font-semibold px-3 py-1 tracking-wide">Aktív most</span>
+        </div>
+        <p class="text-mist leading-relaxed max-w-2xl">
+          Klasszikus OneBlock élmény: indulj egyetlen lebegő blokkról, törd, fejlődj végig a fázisokon, és építsd fel
+          a saját szigetbirodalmadat a semmiből. Minél magasabb a szigeted szintje, annál értékesebb jutalmak várnak —
+          és ahogy lentebb olvashatod, ez a szintezés minden szezonban újra kezdődik, hogy mindenkinek esélye legyen a csúcsra kerülni.
+        </p>
+      </div>
+    </div>
+
+    <!-- Future modes -->
+    <div class="mt-16">
+      <p class="reveal text-center font-mono text-xs tracking-[0.35em] uppercase text-gold mb-8">Tervben — igény szerint</p>
+      <div class="grid sm:grid-cols-3 gap-6">
+        <div class="reveal glass rounded-2xl p-6 text-center opacity-90">
+          <div class="w-12 h-12 mx-auto rounded-xl bg-gold/15 flex items-center justify-center text-2xl mb-4">⛓️</div>
+          <h4 class="font-display text-lg font-semibold text-starlight mb-1">Prison</h4>
+          <p class="text-mist text-sm">Hamarosan, a közösség visszajelzései alapján.</p>
+        </div>
+        <div class="reveal glass rounded-2xl p-6 text-center opacity-90" style="transition-delay:.05s">
+          <div class="w-12 h-12 mx-auto rounded-xl bg-soul/15 flex items-center justify-center text-2xl mb-4">🌍</div>
+          <h4 class="font-display text-lg font-semibold text-starlight mb-1">Survival</h4>
+          <p class="text-mist text-sm">Hamarosan, a közösség visszajelzései alapján.</p>
+        </div>
+        <div class="reveal glass rounded-2xl p-6 text-center opacity-90" style="transition-delay:.1s">
+          <div class="w-12 h-12 mx-auto rounded-xl bg-feather/15 flex items-center justify-center text-2xl mb-4">🏰</div>
+          <h4 class="font-display text-lg font-semibold text-starlight mb-1">Creative</h4>
+          <p class="text-mist text-sm">Hamarosan, a közösség visszajelzései alapján.</p>
+        </div>
+      </div>
+      <p class="reveal text-center text-mist/70 text-xs mt-6 max-w-xl mx-auto">
+        Ezek a módok nincsenek még véglegesítve — attól függ mikor és milyen sorrendben érkeznek, mennyien igénylik a közösségből. Mondd el a véleményed a Discordon!
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="feather-divider" aria-hidden="true">
+  <svg viewBox="0 0 1440 64" preserveAspectRatio="none">
+    <path d="M0,32 C120,60 240,4 360,32 C480,60 600,4 720,32 C840,60 960,4 1080,32 C1200,60 1320,4 1440,32 L1440,64 L0,64 Z" fill="#080B22"/>
+  </svg>
+</div>
+
+<!-- =========================================================
+     SZEZON RENDSZER
+========================================================= -->
+<section id="szezon" class="relative z-10 bg-void px-5 py-24 md:py-32">
+  <div class="max-w-5xl mx-auto">
+    <div class="reveal text-center mb-14">
+      <p class="font-mono text-xs tracking-[0.35em] uppercase text-soulbright mb-3">Verseny a csúcsért</p>
+      <h2 class="font-display text-3xl md:text-5xl font-bold text-starlight">Szezon rendszer</h2>
+      <p class="mt-4 text-mist max-w-xl mx-auto">Minden szezon friss esélyt ad mindenkinek a dobogóra kerülésre.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="reveal glass rounded-2xl p-7 text-center">
+        <div class="w-14 h-14 mx-auto rounded-xl bg-soul/15 flex items-center justify-center text-2xl mb-5 font-mono font-bold text-soulbright">3H</div>
+        <h3 class="font-display text-lg font-semibold text-starlight mb-2">3 hónapos ciklusok</h3>
+        <p class="text-mist text-sm leading-relaxed">Minden szezon 3 hónapig tart, utána új kör indul — friss lendülettel mindenkinek.</p>
+      </div>
+      <div class="reveal glass rounded-2xl p-7 text-center" style="transition-delay:.05s">
+        <div class="w-14 h-14 mx-auto rounded-xl bg-feather/15 flex items-center justify-center text-2xl mb-5">🔄</div>
+        <h3 class="font-display text-lg font-semibold text-starlight mb-2">Sziget szint reset</h3>
+        <p class="text-mist text-sm leading-relaxed">A szezon végén minden sziget szintje 0-ra áll vissza — mindenki egyenlő eséllyel vág neki az újnak.</p>
+      </div>
+      <div class="reveal glass rounded-2xl p-7 text-center" style="transition-delay:.1s">
+        <div class="w-14 h-14 mx-auto rounded-xl bg-gold/15 flex items-center justify-center text-2xl mb-5">🏆</div>
+        <h3 class="font-display text-lg font-semibold text-starlight mb-2">Top 3 jutalom</h3>
+        <p class="text-mist text-sm leading-relaxed">A szezon 3 legmagasabb szigetszintű játékosa exkluzív jutalmakat kap a rangsor lezárásakor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="feather-divider" aria-hidden="true">
+  <svg viewBox="0 0 1440 64" preserveAspectRatio="none">
+    <path d="M0,32 C120,4 240,60 360,32 C480,4 600,60 720,32 C840,4 960,60 1080,32 C1200,4 1320,60 1440,32 L1440,0 L0,0 Z" fill="#0E1338"/>
+  </svg>
+</div>
+
+<!-- =========================================================
+     WEBSHOP / RANGOK
+========================================================= -->
+<section id="webshop" class="relative z-10 bg-nightsky px-5 py-24 md:py-32">
+  <div class="max-w-6xl mx-auto">
+    <div class="reveal text-center mb-8">
+      <p class="font-mono text-xs tracking-[0.35em] uppercase text-gold mb-3">Támogasd a szervert</p>
+      <h2 class="font-display text-3xl md:text-5xl font-bold text-starlight">Webshop &amp; Rangok</h2>
+      <p class="mt-4 text-mist max-w-xl mx-auto">Egy rang sem ad harci vagy gazdasági előnyt — csak kényelmet és megjelenést.</p>
+    </div>
+
+    <!-- Non-P2W banner -->
+    <div class="reveal glass rounded-2xl px-6 py-4 max-w-2xl mx-auto mb-16 flex items-center gap-3 justify-center text-center">
+      <span class="text-xl">🛡️</span>
+      <p class="text-sm text-mist"><span class="text-starlight font-semibold">100% Non-P2W</span> — a valódi pénzes és az érmés rangok is kizárólag kényelmi és kozmetikai előnyöket adnak, a játékegyensúlyt soha nem befolyásolják.</p>
+    </div>
+
+    <!-- NOVA — real-money rank -->
+    <p class="reveal text-center font-mono text-xs tracking-[0.35em] uppercase text-gold mb-6">Valódi pénzért — Webshop</p>
+    <div class="reveal rank-card glass-strong rounded-2xl p-8 md:p-10 max-w-xl mx-auto flex flex-col relative border-2 border-gold shadow-glowGold mb-20" style="--accent-glow: rgba(255,199,115,0.4)">
+      <span class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-gold to-soul text-void text-xs font-bold px-4 py-1">Prémium rang</span>
+      <span class="text-gold font-mono text-xs tracking-widest uppercase mb-3">Az ég csúcsa</span>
+      <h3 class="font-display text-2xl font-bold text-starlight mb-1">NOVA</h3>
+      <p class="text-3xl font-bold text-starlight mb-6">4 990 Ft<span class="text-sm text-mist font-normal"> / örökre</span></p>
+      <ul class="space-y-3 text-sm text-mist mb-8 flex-1">
+        <li class="flex gap-2"><span class="text-gold">✦</span> Egyedi „NOVA" előtag és színes név a chatben</li>
+        <li class="flex gap-2"><span class="text-gold">✦</span> Extra otthonok (/home) és /kit nova naponta</li>
+        <li class="flex gap-2"><span class="text-gold">✦</span> Exkluzív részecske-effekt és kozmetikai extrák</li>
+        <li class="flex gap-2"><span class="text-gold">✦</span> Elsőbbségi belépés zsúfoltság esetén</li>
+        <li class="flex gap-2"><span class="text-gold">✦</span> Nem ad harci, gazdasági vagy szintezési előnyt</li>
+      </ul>
+      <a href="#" class="text-center rounded-xl bg-gradient-to-r from-gold to-soul text-void font-semibold py-3 hover:brightness-110 transition">Megvásárlás</a>
+    </div>
+
+    <!-- VOID tiers — in-game coin ranks -->
+    <p class="reveal text-center font-mono text-xs tracking-[0.35em] uppercase text-feather mb-6">Játékon belüli érméért — küzdj meg érte</p>
+    <div class="grid md:grid-cols-3 gap-6 items-stretch">
+
+      <!-- VOID -->
+      <div class="reveal rank-card glass rounded-2xl p-8 flex flex-col" style="--accent-glow: rgba(72,217,232,0.3)">
+        <span class="text-feather font-mono text-xs tracking-widest uppercase mb-3">Belépő az ürességbe</span>
+        <h3 class="font-display text-2xl font-bold text-starlight mb-1">VOID</h3>
+        <p class="text-2xl font-bold text-starlight mb-6">Érmékért<span class="text-sm text-mist font-normal block mt-1">a szerveren belül</span></p>
+        <ul class="space-y-3 text-sm text-mist mb-8 flex-1">
+          <li class="flex gap-2"><span class="text-feather">✦</span> Egyedi „VOID" előtag a chatben</li>
+          <li class="flex gap-2"><span class="text-feather">✦</span> +2 extra otthon (/home)</li>
+          <li class="flex gap-2"><span class="text-feather">✦</span> Alap kozmetikai extrák</li>
+        </ul>
+        <a href="#" class="text-center rounded-xl border border-feather/50 text-feather font-semibold py-3 hover:bg-feather/10 transition">Érmékért a szerveren</a>
+      </div>
+
+      <!-- VOID+ -->
+      <div class="reveal rank-card glass rounded-2xl p-8 flex flex-col" style="--accent-glow: rgba(139,108,255,0.35)">
+        <span class="text-soulbright font-mono text-xs tracking-widest uppercase mb-3">Mélyebbre merülve</span>
+        <h3 class="font-display text-2xl font-bold text-starlight mb-1">VOID+</h3>
+        <p class="text-2xl font-bold text-starlight mb-6">Érmékért<span class="text-sm text-mist font-normal block mt-1">a szerveren belül</span></p>
+        <ul class="space-y-3 text-sm text-mist mb-8 flex-1">
+          <li class="flex gap-2"><span class="text-soulbright">✦</span> Minden VOID előny</li>
+          <li class="flex gap-2"><span class="text-soulbright">✦</span> +4 extra otthon (/home)</li>
+          <li class="flex gap-2"><span class="text-soulbright">✦</span> Bővített kozmetikai extrák</li>
+        </ul>
+        <a href="#" class="text-center rounded-xl border border-soul/50 text-soulbright font-semibold py-3 hover:bg-soul/10 transition">Érmékért a szerveren</a>
+      </div>
+
+      <!-- VOID++ -->
+      <div class="reveal rank-card glass rounded-2xl p-8 flex flex-col" style="--accent-glow: rgba(255,199,115,0.3)">
+        <span class="text-gold font-mono text-xs tracking-widest uppercase mb-3">Az üresség ura</span>
+        <h3 class="font-display text-2xl font-bold text-starlight mb-1">VOID++</h3>
+        <p class="text-2xl font-bold text-starlight mb-6">Érmékért<span class="text-sm text-mist font-normal block mt-1">a szerveren belül</span></p>
+        <ul class="space-y-3 text-sm text-mist mb-8 flex-1">
+          <li class="flex gap-2"><span class="text-gold">✦</span> Minden VOID+ előny</li>
+          <li class="flex gap-2"><span class="text-gold">✦</span> Korlátlan otthon (/home)</li>
+          <li class="flex gap-2"><span class="text-gold">✦</span> Legmagasabb szintű kozmetikai extrák</li>
+        </ul>
+        <a href="#" class="text-center rounded-xl border border-gold/50 text-gold font-semibold py-3 hover:bg-gold/10 transition">Érmékért a szerveren</a>
+      </div>
+
+    </div>
+    <p class="reveal text-center text-xs text-mist/70 mt-10 max-w-2xl mx-auto">
+      A VOID rangok kizárólag a játékban, aktív játékkal megszerzett érmékért válthatók be — valódi pénzért nem elérhetők. A NOVA rang a webshopban vásárolható meg.
+    </p>
+  </div>
+</section>
+
+<div class="feather-divider" aria-hidden="true">
+  <svg viewBox="0 0 1440 64" preserveAspectRatio="none">
+    <path d="M0,32 C120,60 240,4 360,32 C480,60 600,4 720,32 C840,60 960,4 1080,32 C1200,60 1320,4 1440,32 L1440,64 L0,64 Z" fill="#080B22"/>
+  </svg>
+</div>
+
+<!-- =========================================================
+     SZABÁLYZAT
+========================================================= -->
+<section id="szabalyzat" class="relative z-10 bg-void px-5 py-24 md:py-32">
+  <div class="max-w-4xl mx-auto">
+    <div class="reveal text-center mb-14">
+      <p class="font-mono text-xs tracking-[0.35em] uppercase text-feather mb-3">Játssz tisztelettel</p>
+      <h2 class="font-display text-3xl md:text-5xl font-bold text-starlight">Szabályzat</h2>
+      <p class="mt-4 text-mist max-w-xl mx-auto">A közösség békéje mindannyiunk közös felelőssége. Kattints egy kategóriára a részletekért.</p>
+    </div>
+
+    <div id="rulesAccordion" class="space-y-4">
+
+      <!-- Rule group 1 -->
+      <div class="rule-item reveal glass rounded-2xl overflow-hidden">
+        <button class="rule-toggle w-full flex items-center justify-between px-6 py-5 text-left">
+          <span class="flex items-center gap-3 font-display font-semibold text-starlight">
+            <span class="text-feather">01</span> Általános szabályok
+          </span>
+          <svg class="chev h-5 w-5 text-mist" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="rule-panel px-6">
+          <ul class="pb-6 space-y-2 text-mist text-sm leading-relaxed list-disc list-inside">
+            <li>Tilos a más játékosok zaklatása, fenyegetése vagy megalázása.</li>
+            <li>Tilos a csalás, dupe, exploit és bármilyen jogosulatlan program (X-ray, hack kliens) használata.</li>
+            <li>Az adminok és moderátorok utasításait mindenkinek be kell tartania.</li>
+            <li>Egy fő – egy fiók, hacsak a stáb másként nem engedélyezi.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Rule group 2 -->
+      <div class="rule-item reveal glass rounded-2xl overflow-hidden">
+        <button class="rule-toggle w-full flex items-center justify-between px-6 py-5 text-left">
+          <span class="flex items-center gap-3 font-display font-semibold text-starlight">
+            <span class="text-feather">02</span> Chat &amp; kommunikáció
+          </span>
+          <svg class="chev h-5 w-5 text-mist" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="rule-panel px-6">
+          <ul class="pb-6 space-y-2 text-mist text-sm leading-relaxed list-disc list-inside">
+            <li>Tilos a gyűlöletbeszéd, rasszizmus és minden diszkriminatív tartalom.</li>
+            <li>Kerüld a felesleges nagybetűs írást (CAPS) és a spamet.</li>
+            <li>Reklám, más szerverek promotálása szigorúan tilos.</li>
+            <li>18+ tartalom megosztása és említése nem engedélyezett.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Rule group 3 -->
+      <div class="rule-item reveal glass rounded-2xl overflow-hidden">
+        <button class="rule-toggle w-full flex items-center justify-between px-6 py-5 text-left">
+          <span class="flex items-center gap-3 font-display font-semibold text-starlight">
+            <span class="text-feather">03</span> Építkezés &amp; birtokok
+          </span>
+          <svg class="chev h-5 w-5 text-mist" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="rule-panel px-6">
+          <ul class="pb-6 space-y-2 text-mist text-sm leading-relaxed list-disc list-inside">
+            <li>Tilos mások birtokán engedély nélkül építkezni vagy bontani.</li>
+            <li>Kerüld a sértő, obszcén vagy politikai tartalmú építményeket.</li>
+            <li>Lag-gépek (redstone/farm túlterhelés) építése előzetes egyeztetéshez kötött.</li>
+            <li>Az elhagyott, inaktív birtokok 60 nap után visszaigényelhetők.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Rule group 4 -->
+      <div class="rule-item reveal glass rounded-2xl overflow-hidden">
+        <button class="rule-toggle w-full flex items-center justify-between px-6 py-5 text-left">
+          <span class="flex items-center gap-3 font-display font-semibold text-starlight">
+            <span class="text-feather">04</span> Tiltott eszközök &amp; magatartás
+          </span>
+          <svg class="chev h-5 w-5 text-mist" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="rule-panel px-6">
+          <ul class="pb-6 space-y-2 text-mist text-sm leading-relaxed list-disc list-inside">
+            <li>Autoclickerek, macrók és bármilyen automatizált eszköz tilos.</li>
+            <li>A szabályok kijátszására tett kísérletek (pl. „szürke zóna" kihasználása) szankcionálhatók.</li>
+            <li>A stábbal szembeni hazugság vagy vizsgálat akadályozása súlyosbító körülmény.</li>
+            <li>A szabályzat megszegése figyelmeztetést, ideiglenes vagy végleges kitiltást vonhat maga után.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="feather-divider" aria-hidden="true">
+  <svg viewBox="0 0 1440 64" preserveAspectRatio="none">
+    <path d="M0,32 C120,4 240,60 360,32 C480,4 600,60 720,32 C840,4 960,60 1080,32 C1200,4 1320,60 1440,32 L1440,0 L0,0 Z" fill="#080B22"/>
+  </svg>
+</div>
+
+<!-- =========================================================
+     KÖZÖSSÉG / DISCORD
+========================================================= -->
+<section id="kozosseg" class="relative z-10 bg-void px-5 py-24 md:py-32 overflow-hidden">
+  <div class="max-w-4xl mx-auto reveal">
+    <div class="glass-strong rounded-3xl p-8 md:p-14 text-center relative shadow-glow">
+
+      <div class="absolute -top-16 -right-10 w-56 h-56 rounded-full bg-soul/20 blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-feather/20 blur-3xl pointer-events-none"></div>
+
+      <div class="relative">
+        <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-soul to-feather flex items-center justify-center text-3xl shadow-glow">
+          👾
+        </div>
+        <h2 class="font-display text-3xl md:text-4xl font-bold text-starlight mb-4">Csatlakozz a közösségünkhöz</h2>
+        <p class="text-mist max-w-xl mx-auto mb-8 leading-relaxed">
+          A PegaSoulSky nem csupán egy szerver — egy család. Csatlakozz a Discordunkhoz, ismerkedj meg más lélektársakkal,
+          kapj élő értesítést az eseményekről, és legyél az első, aki megtudja az újdonságokat.
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-8 mb-10 text-sm text-mist">
+          <div>
+            <p class="font-display text-2xl font-bold text-starlight">3 400+</p>
+            <p>Discord tag</p>
+          </div>
+          <div>
+            <p class="font-display text-2xl font-bold text-starlight">0-24</p>
+            <p>Aktív moderáció</p>
+          </div>
+          <div>
+            <p class="font-display text-2xl font-bold text-starlight">Heti</p>
+            <p>Közösségi események</p>
+          </div>
+        </div>
+
+        <a href="https://discord.gg/XQebGe97YX" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-soul to-feather px-8 py-4 font-display font-semibold text-void shadow-glow hover:scale-105 transition-transform">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36" class="h-5 w-5 fill-void" aria-hidden="true">
+            <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+          </svg>
+          Csatlakozás a Discordhoz
+        </a>
+
+        <!-- Other socials: not launched yet -->
+        <div class="mt-10 pt-8 border-t border-soul/15">
+          <p class="text-xs text-mist/60 uppercase tracking-widest mb-4">Egyéb felületeink</p>
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <span class="inline-flex items-center gap-2 rounded-full glass px-4 py-2 text-sm text-mist/70 cursor-not-allowed" title="Hamarosan induló felület">
+              TikTok <span class="text-[10px] uppercase tracking-widest text-gold/80 bg-gold/10 rounded-full px-2 py-0.5">Hamarosan</span>
+            </span>
+            <span class="inline-flex items-center gap-2 rounded-full glass px-4 py-2 text-sm text-mist/70 cursor-not-allowed" title="Hamarosan induló felület">
+              YouTube <span class="text-[10px] uppercase tracking-widest text-gold/80 bg-gold/10 rounded-full px-2 py-0.5">Hamarosan</span>
+            </span>
+            <span class="inline-flex items-center gap-2 rounded-full glass px-4 py-2 text-sm text-mist/70 cursor-not-allowed" title="Hamarosan induló felület">
+              Instagram <span class="text-[10px] uppercase tracking-widest text-gold/80 bg-gold/10 rounded-full px-2 py-0.5">Hamarosan</span>
+            </span>
+          </div>
+          <p class="text-xs text-mist/50 mt-4 max-w-md mx-auto">A tesztelési időszak elindulásával nyitjuk meg ezeket a felületeket is.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer class="relative z-10 bg-nightsky border-t border-soul/15 px-5 pt-16 pb-8">
+  <div class="max-w-6xl mx-auto grid sm:grid-cols-2 md:grid-cols-4 gap-10">
+
+    <div>
+      <a href="#kezdolap" class="flex items-center gap-2 mb-4">
+        <span class="font-display text-lg logo-letters">
+          <span style="color:#C8B6FF">P</span><span style="color:#B9B1FE">e</span><span style="color:#ABADFC">g</span><span style="color:#A6B4FB">a</span><span style="color:#A1BBF9">S</span><span style="color:#9DC4F7">o</span><span style="color:#98CDF4">u</span><span style="color:#94D6F2">l</span><span style="color:#90E0EF">S</span><span style="color:#90E0EF">k</span><span style="color:#90E0EF">y</span>
+        </span>
+      </a>
+      <p class="text-mist text-sm leading-relaxed">Ahol az ég és a lélek eggyé válik. Egy tisztességes, non-P2W OneBlock közösség — csatlakozz még ma!</p>
+    </div>
+
+    <div>
+      <h4 class="font-display text-starlight font-semibold mb-4">Gyors linkek</h4>
+      <ul class="space-y-2 text-sm text-mist">
+        <li><a href="#kezdolap" class="hover:text-feather transition-colors">Kezdőlap</a></li>
+        <li><a href="#jatekmodok" class="hover:text-feather transition-colors">Játékmódok</a></li>
+        <li><a href="#szezon" class="hover:text-feather transition-colors">Szezon</a></li>
+        <li><a href="#webshop" class="hover:text-feather transition-colors">Webshop</a></li>
+        <li><a href="#szabalyzat" class="hover:text-feather transition-colors">Szabályzat</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 class="font-display text-starlight font-semibold mb-4">Közösség</h4>
+      <ul class="space-y-2 text-sm text-mist">
+        <li><a href="https://discord.gg/XQebGe97YX" target="_blank" rel="noopener noreferrer" class="hover:text-feather transition-colors">Discord szerver</a></li>
+        <li class="text-mist/50 cursor-not-allowed">TikTok <span class="text-[10px] uppercase tracking-widest text-gold/70">· Hamarosan</span></li>
+        <li class="text-mist/50 cursor-not-allowed">YouTube <span class="text-[10px] uppercase tracking-widest text-gold/70">· Hamarosan</span></li>
+        <li class="text-mist/50 cursor-not-allowed">Instagram <span class="text-[10px] uppercase tracking-widest text-gold/70">· Hamarosan</span></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 class="font-display text-starlight font-semibold mb-4">Csatlakozás</h4>
+      <p class="text-mist text-sm mb-2">Szerver IP:</p>
+      <code class="font-mono text-feather text-sm">play.pegasoulsky.hu</code>
+      <p class="text-mist text-xs mt-4">Minecraft Java Edition, 1.21.8+</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto mt-12 pt-6 border-t border-soul/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-mist/70">
+    <p>© <span id="year"></span> PegaSoulSky. Minden jog fenntartva.</p>
+    <p>Nem áll kapcsolatban a Mojang Studios / Microsoft vállalattal.</p>
+  </div>
+</footer>
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+<script>
+  // ---------------------------------------------------------
+  // 1) Starfield canvas background
+  // ---------------------------------------------------------
+  (function starfield(){
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function resize(){
+      canvas.width = window.innerWidth;
+      canvas.height = document.documentElement.scrollHeight;
+      const count = Math.floor((canvas.width * canvas.height) / 9000);
+      stars = Array.from({length: count}, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.3 + 0.2,
+        a: Math.random(),
+        speed: Math.random() * 0.004 + 0.001,
+      }));
+    }
+
+    function draw(){
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#F3F1FF';
+      stars.forEach(s => {
+        s.a += s.speed;
+        const twinkle = (Math.sin(s.a * Math.PI * 2) + 1) / 2;
+        ctx.globalAlpha = 0.15 + twinkle * 0.6;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      if(!prefersReducedMotion) requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    draw();
+  })();
+
+  // ---------------------------------------------------------
+  // 2) Mobile menu toggle
+  // ---------------------------------------------------------
+  const menuBtn = document.getElementById('menuBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const iconMenu = document.getElementById('iconMenu');
+  const iconClose = document.getElementById('iconClose');
+
+  menuBtn.addEventListener('click', () => {
+    const isOpen = !mobileMenu.classList.contains('hidden');
+    mobileMenu.classList.toggle('hidden');
+    iconMenu.classList.toggle('hidden');
+    iconClose.classList.toggle('hidden');
+    menuBtn.setAttribute('aria-expanded', String(!isOpen));
+  });
+
+  document.querySelectorAll('.mobile-link').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.add('hidden');
+      iconMenu.classList.remove('hidden');
+      iconClose.classList.add('hidden');
+    });
+  });
+
+  // ---------------------------------------------------------
+  // 3) Copy server IP to clipboard, with feedback badge
+  // ---------------------------------------------------------
+  const copyBtn = document.getElementById('copyBtn');
+  const copiedBadge = document.getElementById('copiedBadge');
+  const SERVER_IP = 'play.pegasoulsky.hu';
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(SERVER_IP);
+    } catch (err) {
+      // Fallback for older browsers / non-secure contexts
+      const tmp = document.createElement('textarea');
+      tmp.value = SERVER_IP;
+      document.body.appendChild(tmp);
+      tmp.select();
+      document.execCommand('copy');
+      document.body.removeChild(tmp);
+    }
+    copiedBadge.classList.add('show');
+    setTimeout(() => copiedBadge.classList.remove('show'), 1800);
+  });
+
+  // ---------------------------------------------------------
+  // 4) Live Minecraft server status via mcsrvstat.us public API
+  //    Docs: https://api.mcsrvstat.us/
+  // ---------------------------------------------------------
+  async function fetchServerStatus(){
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+
+    try {
+      const res = await fetch(`https://api.mcsrvstat.us/3/${SERVER_IP}`);
+      if(!res.ok) throw new Error('Hálózati hiba');
+      const data = await res.json();
+
+      if (data.online) {
+        const online = data.players?.online ?? 0;
+        const max = data.players?.max ?? '?';
+        statusDot.classList.remove('offline');
+        statusText.textContent = `Online · ${online} / ${max} játékos`;
+      } else {
+        statusDot.classList.add('offline');
+        statusText.textContent = 'A szerver jelenleg offline';
+      }
+    } catch (err){
+      statusDot.classList.add('offline');
+      statusText.textContent = 'Állapot jelenleg nem elérhető';
+      console.warn('PegaSoulSky státusz lekérés sikertelen:', err);
+    }
+  }
+
+  fetchServerStatus();
+  // Refresh live status every 60 seconds
+  setInterval(fetchServerStatus, 60000);
+
+  // ---------------------------------------------------------
+  // 5) Rules accordion
+  // ---------------------------------------------------------
+  document.querySelectorAll('.rule-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.rule-item');
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.rule-item.open').forEach(el => el.classList.remove('open'));
+      if(!wasOpen) item.classList.add('open');
+    });
+  });
+  // Open the first rule group by default
+  document.querySelector('.rule-item')?.classList.add('open');
+
+  // ---------------------------------------------------------
+  // 6) Scroll-reveal animation via IntersectionObserver
+  // ---------------------------------------------------------
+  const revealItems = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        entry.target.classList.add('in-view');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealItems.forEach(el => io.observe(el));
+
+  // ---------------------------------------------------------
+  // 7) Active nav link highlighting on scroll
+  // ---------------------------------------------------------
+  const sections = document.querySelectorAll('main, section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+        });
+      }
+    });
+  }, { rootMargin: '-45% 0px -45% 0px' });
+
+  document.querySelectorAll('section[id]').forEach(sec => sectionObserver.observe(sec));
+
+  // ---------------------------------------------------------
+  // 8) Navbar background intensifies on scroll
+  // ---------------------------------------------------------
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.style.filter = window.scrollY > 20 ? 'drop-shadow(0 8px 24px rgba(8,11,34,0.45))' : 'none';
+  });
+
+  // ---------------------------------------------------------
+  // 9) Footer year
+  // ---------------------------------------------------------
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
